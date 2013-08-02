@@ -13,5 +13,6 @@ if ( !defined( 'MEDIAWIKI' ) ) {
 class NephroWiki {
 	function loadModule($out, $parseroutput) {
 		$out->addModules('ext.nephrowiki');
+		return true;
 	}
 }
