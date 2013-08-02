@@ -6,17 +6,24 @@ if ( !defined( 'MEDIAWIKI' ) ) {
 	die( 'Not an entry point.' );
 }
 
-$wgExtensionCredits['nephrowiki'][] = array(
+$wgExtensionCredits['parserhook'][] = array(
 	'path'           => __FILE__,
 	'name'           => 'NephroWiki',
-	'author'         => 'Daniel Kraus', 
-	'version'        => '1.0.0'
+	'author'         => '[https://www.mediawiki.org/wiki/User:Bovender Daniel Kraus]', 
+	'version'        => '1.0.0',
+	'description'    => 'Lädt NephroWiki-eigenes JavaScript'
 );
 
-# Use MediaWiki's resource loader to load NephroWiki's JavaScript.
+$wgAutoloadClasses['NephroWiki'] = dirname( __FILE__ ) . '/NephroWiki.body.php';
+$wgHooks[''][] = 'NephroWiki::loadModule';
+
+# Register this extension with MediaWiki's resource loader 
+# to be able load NephroWiki's JavaScript.
 $wgResourceModules['ext.nephrowiki'] = array(
+	'position' => 'top',
 	'scripts' => 'NephroWiki.js',
 	'dependencies' => 'jquery.ui.slider',
 	'localBasePath' => __DIR__,
-	'remoteExtPath' => 'NephroWiki');
+	'remoteExtPath' => 'NephroWiki'
+);
 
