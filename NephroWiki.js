@@ -11,6 +11,10 @@
  * return an empty string if none are checked, or
  * there are no radio buttons
 */
+$(document).ready(function() {
+	alert("it works");
+});
+
 function getCheckedValue(radioObj) {
 	if(!radioObj)
 		return "";
