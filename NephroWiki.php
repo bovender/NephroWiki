@@ -15,7 +15,7 @@ $wgExtensionCredits['parserhook'][] = array(
 );
 
 $wgAutoloadClasses['NephroWiki'] = dirname( __FILE__ ) . '/NephroWiki.body.php';
-$wgHooks[''][] = 'NephroWiki::loadModule';
+$wgHooks['OutputPageParserOutput'][] = 'NephroWiki::loadModule';
 
 # Register this extension with MediaWiki's resource loader 
 # to be able load NephroWiki's JavaScript.
