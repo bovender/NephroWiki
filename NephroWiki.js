@@ -19,8 +19,8 @@
  * calculators and such. 
  */
 
-/* Helfer-Funktion zum Auslesen von Radiobuttons.
- * Von http://www.somacon.com/p143.php
+/* Helper function to get a string value from a checked radio button.
+ * See http://www.somacon.com/p143.php
  * return the value of the radio button that is checked
  * return an empty string if none are checked, or
  * there are no radio buttons
@@ -42,6 +42,115 @@ function getCheckedValue(radioObj) {
 	return "";
 }
 
+function callFunction(functionName) {
+	// Call a function by the name given in a string
+	// See: http://stackoverflow.com/questions/912596
+	window[functionName]();
+}
+
+
+// Initialization method to set up a page's calculator forms.
+$(document).ready(function() { 
+
+	// We need several wrapper functions the create closures for
+	// the callback functions. This is required to be able to dynamically
+	// set up the callbacks for any form.
+	// Generate callback closure for the slide method.
+	function slideCallBack(formID, inputField) {
+		return function(event, ui) {
+			inputField.val(ui.value);
+			// Call the function indicated by the form's ID.
+			callFunction(formID);
+		}
+	}
+
+	// Generate callback closure for the click method.
+	function clickCallBack(formID) {
+		return function() {
+			// Call the function indicated by the form's ID.
+			callFunction(formID);
+		}
+	}
+
+	// Generate callback closures for the keyup methods.
+	// We abandon the DRY principle here so that we don't have to
+	// put the detection algorithm for associated sliders into
+	// the callbacks.
+	function keyUpCallBack(formID) {
+		return function(event) {
+			// Call the function indicated by the form's ID.
+			callFunction(formID);
+		}
+	}
+	function keyUpCallBackWithSlider(formID, inputField, slider) {
+		return function(event) {
+			// Update the associated slider
+			slider.slider('value', inputField.val());
+			// Call the function indicated by the form's ID.
+			callFunction(formID);
+		}
+	}
+
+	// Actual body of the function:
+	// Iterate over all calculator forms on the page and attach the
+	// appropriate event handlers as needed.
+	$('.nwCalc').each(function() {
+		// Get the name of the current form; we need it in the callback
+		// closures.
+		formID = $(this).attr('id');
+
+		// Iterate through all the slider divs inside this form
+		$(this).find('.nwSlider').each(function() {
+			// Retrieve the slider's parameters from the data-field
+			// attributes of the div element. 
+			slider = $(this);
+			minVal = slider.data('min');
+			maxVal = slider.data('max');
+			stepVal = slider.data('step');
+			defaultVal = slider.data('default');
+
+			// Get the associated input field
+			// The name of the input field that is associated with a slider
+			// div is stored in the slider div's data-field attribute.
+			fieldName = slider.data('field');
+			inputField = $('#'+formID+' [name='+fieldName+']');
+
+			// Make the div a jQueryUI slider and attach the required callback
+			// functions.
+			slider.slider({
+				value: defaultVal, min: minVal, max: maxVal, step: stepVal, 
+				slide: slideCallBack(formID, inputField)
+			});
+
+			// Put the default value into the input field.
+			if (inputField.length) {
+				inputField.val(defaultVal);
+			}
+		});
+
+		// Iterate through all the text input fields (which may or may not
+		// belong to a slider div).
+		$(this).find('input[type=text]').each(function() {
+			inputField = $(this);
+			slider = $('#'+formID+
+				' .nwSlider[data-field='+inputField.attr('name')+']');
+			// If the input field has an associated slider, the slider
+			// object will have a length greater than zero.
+			if (slider.length) {
+				inputField.keyup(keyUpCallBackWithSlider(formID, inputField,
+						slider));
+			} else {
+				inputField.keyup(keyUpCallBack(formID));
+			}
+		});
+
+		// Iterate through all radio buttons on this form.
+		$(this).find('input[type=radio]').each(function() {
+			$(this).click(clickCallBack(formID));
+		});
+	});
+});
+
 
 
 /* Berechnung des Plasmavolumens und der Plasmapherese-Parameter.
@@ -55,7 +164,7 @@ function getCheckedValue(radioObj) {
 
 
 // Berechnet die PP-DatenFormel.
-function ComputePP() {
+function nwPlasma() {
 	// Text-Eingabefelder auslesen und in Gleitkommazahlen umwandeln.
 	try {
 		with (document.PPform) {
@@ -115,51 +224,5 @@ function ComputePP() {
 	
 };
 
-// Diese Funktion registriert die Event-Handler für die Eingabefelder
-// und die Slider.
-// Jedes Eingabefeld hat ein assoziiertes Slider-Element
-// (siehe http://jqueryui.com/demos/slider).
-// Auf Tastendruck übermittelt jedes Eingabefeld seinen
-// Wert an den Slider; jeder Slider übermittelt bei Veränderung
-// seinen Wert an das Eingabefeld.
-function RegisterHandlers(uiName, aDefault, aMin, aMax, aStep) {
-	$('[name=PP'+uiName+']').keyup(function(event) {
-		$('#PPslider'+uiName).slider("value", $('[name=PP'+uiName+']').val());
-		ComputePP();
-	});
-	
-	$('[name=PP'+uiName+']').val(aDefault);
-	
-	$('#PPslider'+uiName).slider({
-		value: aDefault, min: aMin, max: aMax, step: aStep, 
-		slide: function(event, ui) {
-			$('[name=PP'+uiName+']').val(ui.value);
-			ComputePP();
-		}
-	});
-};
-
-$(document).ready(function() { 
-	// Die Auswahl-Buttons brauchen einen Click-Handler.
-	$('input[name="PPha"]').click(function(event) {
-		ComputePP();
-	});
-	
-	// Es folgen Event-Handler für die Eingabefelder und Slider.
-	RegisterHandlers('bw', 70, 30, 200, 1);
-	RegisterHandlers('hk', 45, 10,  70, 1);
-	RegisterHandlers('pp',  1, 0.5,  5, 0.5);
-	
-	// Für die Schönheit: Texteingabefelder rechtsbündig
-	$('input[name^="PP"]').css('text-align', 'right');
-
-	// Um die Initialberechnung mit den Vorgabewerten
-	// durchzuführen, wird ein Mal die Berechnungs-Funktion
-	// aufgerufen.
-	ComputePP();
-
-	// Versionsinformation in die Konsole schreiben
-	// console.log($().jquery); // Console ist undefiniert beim IE!
-});
 
 /* vim: set tw=76 fo=tqn: */
