@@ -69,6 +69,9 @@ $(document).ready(function() {
 		// Get the name of the current form; we need it in the callback
 		// closures.
 		var formID = $(this).attr('id');
+		if (!formID) {
+			throw "Missing ID on form.nwCalc!"
+		}
 
 		// Iterate through all the slider divs inside this form
 		$(this).find('.nwSlider').each(function() {
@@ -77,7 +80,13 @@ $(document).ready(function() {
 			// div is stored in the slider div's data-field attribute.
 			var slider = $(this);
 			var fieldName = slider.data('field');
+			if (!fieldName) {
+				throw "Missing data-field on nwSlider."
+			}
 			var inputField = $('#'+formID+' [name='+fieldName+']');
+			if (!inputField.length) {
+				throw "Missing input field associated with nwSlider."
+			}
 
 			// Retrieve the slider's parameters from the associated
 			// input element which is indicated in the slider's data-field
