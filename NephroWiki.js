@@ -22,11 +22,6 @@
 
 // Initialization method to set up a page's calculator forms.
 $(document).ready(function() { 
-	// Helper function to call a function by the name given in a string
-	// See: http://stackoverflow.com/questions/912596
-	function callFunction(functionName) {
-		window[functionName]();
-	}
 
 	// We need several wrapper functions the create closures for
 	// the callback functions. This is required to be able to dynamically
@@ -36,7 +31,7 @@ $(document).ready(function() {
 		return function(event, ui) {
 			inputField.val(ui.value);
 			// Call the function indicated by the form's ID.
-			callFunction(formID);
+			NephroWiki.calculate(formID);
 		}
 	}
 
@@ -44,7 +39,7 @@ $(document).ready(function() {
 	function clickCallBack(formID) {
 		return function() {
 			// Call the function indicated by the form's ID.
-			callFunction(formID);
+			NephroWiki.calculate(formID);
 		}
 	}
 
@@ -55,7 +50,7 @@ $(document).ready(function() {
 	function keyUpCallBack(formID) {
 		return function(event) {
 			// Call the function indicated by the form's ID.
-			callFunction(formID);
+			NephroWiki.calculate(formID);
 		}
 	}
 	function keyUpCallBackWithSlider(formID, inputField, slider) {
@@ -63,7 +58,7 @@ $(document).ready(function() {
 			// Update the associated slider
 			slider.slider('value', inputField.val());
 			// Call the function indicated by the form's ID.
-			callFunction(formID);
+			NephroWiki.calculate(formID);
 		}
 	}
 
@@ -73,27 +68,27 @@ $(document).ready(function() {
 	$('.nwCalc').each(function() {
 		// Get the name of the current form; we need it in the callback
 		// closures.
-		formID = $(this).attr('id');
+		var formID = $(this).attr('id');
 
 		// Iterate through all the slider divs inside this form
 		$(this).find('.nwSlider').each(function() {
 			// Get the input field that belongs to this slider.
 			// The name of the input field that is associated with a slider
 			// div is stored in the slider div's data-field attribute.
-			slider = $(this);
-			fieldName = slider.data('field');
-			inputField = $('#'+formID+' [name='+fieldName+']');
+			var slider = $(this);
+			var fieldName = slider.data('field');
+			var inputField = $('#'+formID+' [name='+fieldName+']');
 
 			// Retrieve the slider's parameters from the associated
 			// input element which is indicated in the slider's data-field
-			minVal = inputField.data('min');
-			maxVal = inputField.data('max');
-			defaultVal = inputField.data('default');
+			var minVal = inputField.data('min');
+			var maxVal = inputField.data('max');
+			var defaultVal = inputField.data('default');
 
 			// The stepper value is taken from the slider's data
 			// attribute (it would not make sense to define it in the
 			// input field's attributes).
-			stepVal = slider.data('step');
+			var stepVal = slider.data('step');
 
 			// Make the div a jQueryUI slider and attach the required callback
 			// functions.
@@ -111,8 +106,8 @@ $(document).ready(function() {
 		// Iterate through all the text input fields (which may or may not
 		// belong to a slider div).
 		$(this).find('input[type=text]').each(function() {
-			inputField = $(this);
-			slider = $('#'+formID+
+			var inputField = $(this);
+			var slider = $('#'+formID+
 				' .nwSlider[data-field='+inputField.attr('name')+']');
 			// If the input field has an associated slider, the slider
 			// object will have a length greater than zero.
@@ -151,16 +146,16 @@ NephroWiki.getRadioValue = function(groupName) {
 // respects the field's min/max values.
 NephroWiki.parseInputValue = function(formID, fieldName) {
 	// Get the current input field as a jQuery object
-	input = $('#'+formID+' [name='+fieldName+']');
+	var input = $('#'+formID+' [name='+fieldName+']');
 
 	// Locate the associated label
-	label = input.prevUntil('input', 'span:first');
-	labelText = label.text().replace(/[:=]$/, '');
+	var label = input.prevUntil('input', 'span:first');
+	var labelText = label.text().replace(/[:=]$/, '');
 
 	// Get the min/max parameters and the value
-	min = input.data('min');
-	max = input.data('max');
-	val = parseFloat(input.val().replace(',', '.'));
+	var min = input.data('min');
+	var max = input.data('max');
+	var val = parseFloat(input.val().replace(',', '.'));
 
 	// If the field has a boolean "percent" data attribute,
 	// and the user has entered a decimal number between 0 and 1,
@@ -179,11 +174,40 @@ NephroWiki.parseInputValue = function(formID, fieldName) {
 	return val;
 }
 
+// Helper function that parses a form's input fields and creates a hash from
+// them, which it will then return.
+// Cf.  http://andrewdupont.net/2006/05/18/javascript-associative-arrays-considered-harmful
+// for more on hashes aka 'associative arrays' in JavaScript.
+NephroWiki.parseForm = function(formID) {
+	var params = new Object();
+	$('#'+formID).find('input').each(function() {
+		var fieldName = $(this).attr('name');
+		params[fieldName] = NephroWiki.parseInputValue(formID, fieldName);
+	});
+	// TODO: parse other fields as well (e.g., radio buttons).
+	return params;
+}
+
+
 // The calculate method is a wrapper for the various functions that perform
 // the actual calculations. It takes care of form evaluation and error
 // handling, allowing us to keep the actual calculator functions DRY.
 NephroWiki.calculate = function(formID) {
-	
+	var form = $('#'+formID);
+	try {
+		// Parse the form and generate a hash.
+		var params = this.parseForm(formID);
+		// Call the calculation function by the name of the form ID.
+		// See: http://stackoverflow.com/questions/912596
+		var result = window[formID]();
+		// Output the result.
+		form.find('.result').html(result);
+	} catch (e) {
+		form.find('.result').html('<div class="error">' + e + '</div>');
+	} finally {
+		result = undefined;
+		params = undefined;
+	}
 }
 
 /* vim: set tw=76 fo=tqn: */
