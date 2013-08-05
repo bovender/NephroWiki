@@ -199,7 +199,7 @@ NephroWiki.calculate = function(formID) {
 		var params = this.parseForm(formID);
 		// Call the calculation function by the name of the form ID.
 		// See: http://stackoverflow.com/questions/912596
-		var result = window[formID]();
+		var result = window[formID](params);
 		// Output the result.
 		form.find('.result').html(result);
 	} catch (e) {
