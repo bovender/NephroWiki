@@ -19,38 +19,14 @@
  * calculators and such. 
  */
 
-/* Helper function to get a string value from a checked radio button.
- * See http://www.somacon.com/p143.php
- * return the value of the radio button that is checked
- * return an empty string if none are checked, or
- * there are no radio buttons
-*/
-function getCheckedValue(radioObj) {
-	if(!radioObj)
-		return "";
-	var radioLength = radioObj.length;
-	if(radioLength == undefined)
-		if(radioObj.checked)
-			return radioObj.value;
-		else
-			return "";
-	for(var i = 0; i < radioLength; i++) {
-		if(radioObj[i].checked) {
-			return radioObj[i].value;
-		}
-	}
-	return "";
-}
-
-function callFunction(functionName) {
-	// Call a function by the name given in a string
-	// See: http://stackoverflow.com/questions/912596
-	window[functionName]();
-}
-
 
 // Initialization method to set up a page's calculator forms.
 $(document).ready(function() { 
+	// Helper function to call a function by the name given in a string
+	// See: http://stackoverflow.com/questions/912596
+	function callFunction(functionName) {
+		window[functionName]();
+	}
 
 	// We need several wrapper functions the create closures for
 	// the callback functions. This is required to be able to dynamically
@@ -101,19 +77,23 @@ $(document).ready(function() {
 
 		// Iterate through all the slider divs inside this form
 		$(this).find('.nwSlider').each(function() {
-			// Retrieve the slider's parameters from the data-field
-			// attributes of the div element. 
-			slider = $(this);
-			minVal = slider.data('min');
-			maxVal = slider.data('max');
-			stepVal = slider.data('step');
-			defaultVal = slider.data('default');
-
-			// Get the associated input field
+			// Get the input field that belongs to this slider.
 			// The name of the input field that is associated with a slider
 			// div is stored in the slider div's data-field attribute.
+			slider = $(this);
 			fieldName = slider.data('field');
 			inputField = $('#'+formID+' [name='+fieldName+']');
+
+			// Retrieve the slider's parameters from the associated
+			// input element which is indicated in the slider's data-field
+			minVal = inputField.data('min');
+			maxVal = inputField.data('max');
+			defaultVal = inputField.data('default');
+
+			// The stepper value is taken from the slider's data
+			// attribute (it would not make sense to define it in the
+			// input field's attributes).
+			stepVal = slider.data('step');
 
 			// Make the div a jQueryUI slider and attach the required callback
 			// functions.
@@ -152,77 +132,58 @@ $(document).ready(function() {
 });
 
 
+/* ***********************************************************************
+   Helper functions for calculator algorithms
+   ***********************************************************************
+*/
 
-/* Berechnung des Plasmavolumens und der Plasmapherese-Parameter.
- * (c) Daniel Kraus 1/2012
- * Dieses Skript setzt die Einbindung von jQuery voraus
- * (sollte standardmäßig in MediaWiki eingebunden sein).
- *
- * Versionsgeschichte:
- * 2.0  10.01.2012  Überarbeitung, jetzt mit jQuery und Slider-Elementen
- */
+// Define a class to obtain a private name space.
+function NephroWiki() {}
 
+// Retrieve the name of the currently checked radio button of a given
+// group. Returns nothing if no button is checked.
+NephroWiki.getRadioValue = function(groupName) {
+	return $('input[name='+groupName+']:checked').val();
+}
 
-// Berechnet die PP-DatenFormel.
-function nwPlasma() {
-	// Text-Eingabefelder auslesen und in Gleitkommazahlen umwandeln.
-	try {
-		with (document.PPform) {
-			var bw = parseFloat(PPbw.value.replace(',', '.'));
-			var hk = parseFloat(PPhk.value.replace(',', '.'));
-			var pp = parseFloat(PPpp.value.replace(',', '.'));
-		};
-		
-		// Überprüfung der Benutzereingaben:
-		// Wenn noch nicht alle Felder ausgefüllt sind, wird gar nichts
-		// angezeigt; bei unplausiblen Werten wird eine Warnmeldung
-		// angezeigt.
-		// Der Fehler "&nbsp;" wird generiert, damit der Status-Absatz
-		// immer angezeigt wird.
-		if ((isNaN(bw)) || (isNaN(hk)) || (isNaN(pp)))  { throw "&nbsp;"; }
-			
-		if ((bw < 30)  || (bw > 200)) { throw "Körpergewicht muß zwischen 30 und 200 liegen!" };
-		if ((pp < 0.5) || (pp > 5))   { throw "Plasmavolumen-Faktor muß zwischen 0.5 und 5 liegen!" };
-		
-		// Der Hämatokrit ist möglicherweise als Decimalzahl angegeben,
-		// so daß der Wert jetzt in Prozent konvertiert wird.
-		if ((hk > 0) && (hk < 1)) {
-			hk *= 100; 
-			$('[name="PPhk"]').val(hk);
-			$('#PPsliderhk').slider('value', hk);
-		}
-		if ((hk <  10) || (hk > 70)) { throw "Hk muß zwischen 10 und 70 liegen!" };
+// Parse an input field and return its value
+// Automatically converts ',' to decimal points and
+// respects the field's min/max values.
+NephroWiki.parseInputValue = function(formID, fieldName) {
+	// Get the current input field as a jQuery object
+	input = $('#'+formID+' [name='+fieldName+']');
 
-		
-		// Berechnen:
-		plasmaVol = 0.07 * bw * (1-hk/100);
-		totalVol = plasmaVol * pp;
-		
-		if (getCheckedValue(document.PPform.PPha) == "ffponly") {
-		  var numFFPs = totalVol / 0.2;         // 1 FFP = 0.2 Ltr
-		  var s = '<span class="ergebnis">' +
-			numFFPs.toFixed(0).replace(".", ",") + ' FFPs</span>';
-		} else {
-		  var numFFPs = totalVol / 0.2 * 0.5;
-		  var albVol  = totalVol / 2;
-		  var s = '<span class="ergebnis">' +
-			numFFPs.toFixed(0).replace(".", ",") + " FFPs</span> und " +
-			'<span class="ergebnis">' +
-			albVol.toFixed(1).replace(".", ",") + " Liter Humanalbumin 5 %</span>";
-		};
-					
-		// Ausgeben
-		$('p#PPresult').html('Plasmavolumen: <span class="ergebnis">' +
-			plasmaVol.toFixed(1).replace(".", ",") + ' Liter</span><br />' +
-			'Behandlungsvolumen: <span class="ergebnis">' +
-			totalVol.toFixed(1).replace(".", ",") + ' Liter ' +
-			'(' + s + ')</span>');
-	} catch (e) {
-		$('p#PPresult').html(e);
-		// console.log(e); // Console ist undefiniert beim IE!
-	}
+	// Locate the associated label
+	label = input.prevUntil('input', 'span:first');
+	labelText = label.text().replace(/[:=]$/, '');
+
+	// Get the min/max parameters and the value
+	min = input.data('min');
+	max = input.data('max');
+	val = parseFloat(input.val().replace(',', '.'));
+
+	// If the field has a boolean "percent" data attribute,
+	// and the user has entered a decimal number between 0 and 1,
+	// multiply the value by 100.
+	if ((input.data('percent')) && (Math.abs(val) <= 1)) {
+		val *= 100;
+	};
+
+	// If the entered value is outside the acceptable
+	// range, throw an error.
+	if (val < min) {
+		throw labelText + ' darf nicht kleiner als ' + min + ' sein.';
+	} else if (val > max) {
+		throw labelText + ' darf nicht größer als ' + max + ' sein.';
+	};
+	return val;
+}
+
+// The calculate method is a wrapper for the various functions that perform
+// the actual calculations. It takes care of form evaluation and error
+// handling, allowing us to keep the actual calculator functions DRY.
+NephroWiki.calculate = function(formID) {
 	
-};
-
+}
 
 /* vim: set tw=76 fo=tqn: */
