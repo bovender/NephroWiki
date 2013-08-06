@@ -165,6 +165,9 @@ NephroWiki.parseInputValue = function(formID, fieldName) {
 	var min = input.data('min');
 	var max = input.data('max');
 	var val = parseFloat(input.val().replace(',', '.'));
+	if (!val) {
+		throw 'Bitte ' + labelText + ' eingeben.';
+	}
 
 	// If the field has a boolean "percent" data attribute,
 	// and the user has entered a decimal number between 0 and 1,
