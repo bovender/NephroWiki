@@ -73,6 +73,13 @@ $(document).ready(function() {
 			throw "Missing ID on form.nwCalc!"
 		}
 
+		// Check if the form tells us how wide the sliders should be.
+		// If the data attribute is not present, use a sensible default.
+		var sliderWidth = $(this).data('slider-width');
+		if (!sliderWidth) {
+			sliderWidth = 300; // pixels
+		}
+
 		// Iterate through all the slider divs inside this form
 		$(this).find('.nwSlider').each(function() {
 			// Get the input field that belongs to this slider.
@@ -110,6 +117,9 @@ $(document).ready(function() {
 			if (inputField.length) {
 				inputField.val(defaultVal);
 			}
+
+			// Set the slider's width
+			slider.css('width', sliderWidth + 'px');
 		});
 
 		// Iterate through all the text input fields (which may or may not
@@ -131,6 +141,18 @@ $(document).ready(function() {
 		// Iterate through all radio buttons on this form.
 		$(this).find('input[type=radio]').each(function() {
 			$(this).click(clickCallBack(formID));
+		});
+
+		// Iterate through all span elements and make them equally wide
+		// This requires the spans to have display: inline-block
+		var spanWidth = 0;
+		$(this).find('span').each(function() {
+			if ($(this).width() > spanWidth) {
+				spanWidth = $(this).width();
+			}
+		});
+		$(this).find('span').each(function() {
+			$(this).width(spanWidth);
 		});
 	});
 });
