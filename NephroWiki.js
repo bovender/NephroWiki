@@ -154,6 +154,8 @@ $(document).ready(function() {
 		$(this).find('span').each(function() {
 			$(this).width(spanWidth);
 		});
+
+		NephroWiki.calculate(formID);
 	});
 });
 
