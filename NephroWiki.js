@@ -76,11 +76,15 @@ NephroWiki.parseInputValue = function(formID, fieldName) {
 // for more on hashes aka 'associative arrays' in JavaScript.
 NephroWiki.parseForm = function(formID) {
 	var params = new Object();
-	$('#'+formID).find('input').each(function() {
+	$('#'+formID).find('input[type=text]').each(function() {
 		var fieldName = $(this).attr('name');
 		params[fieldName] = NephroWiki.parseInputValue(formID, fieldName);
 	});
-	// TODO: parse other fields as well (e.g., radio buttons).
+	$('#'+formID).find('input:checked').each(function() {
+		var fieldName = $(this).attr('name');
+		params[fieldName] = $(this).attr('value');
+	});
+	// TODO: parse other fields as well (e.g., selection lists).
 	return params;
 }
 
