@@ -21,7 +21,7 @@ if ( !defined( 'MEDIAWIKI' ) ) {
 
 $wgExtensionCredits['parserhook'][] = array(
 	'path'           => __FILE__,
-	'name'           => 'NephroWiki',
+	'name'           => '[http://github.com/bovender/NephroWiki NephroWiki Extension]',
 	'author'         => '[https://www.mediawiki.org/wiki/User:Bovender Daniel Kraus]', 
 	'version'        => '1.0.1',
 	'description'    => 'Lädt NephroWiki-eigenes JavaScript'
