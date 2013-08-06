@@ -20,7 +20,98 @@
  */
 
 
-// Initialization method to set up a page's calculator forms.
+/* ***********************************************************************
+   Helper functions for calculator algorithms
+   ***********************************************************************
+*/
+
+// Define a class to obtain a private name space.
+function NephroWiki() {}
+
+// Retrieve the name of the currently checked radio button of a given
+// group. Returns nothing if no button is checked.
+NephroWiki.getRadioValue = function(groupName) {
+	return $('input[name='+groupName+']:checked').val();
+}
+
+// Parse an input field and return its value
+// Automatically converts ',' to decimal points and
+// respects the field's min/max values.
+NephroWiki.parseInputValue = function(formID, fieldName) {
+	// Get the current input field as a jQuery object
+	var input = $('#'+formID+' [name='+fieldName+']');
+
+	// Locate the associated label
+	var label = input.prevUntil('input', 'span:first');
+	var labelText = label.text().replace(/[:=]$/, '');
+
+	// Get the min/max parameters and the value
+	var min = input.data('min');
+	var max = input.data('max');
+	var val = parseFloat(input.val().replace(',', '.'));
+	if (!val) {
+		throw 'Bitte ' + labelText + ' eingeben.';
+	}
+
+	// If the field has a boolean "percent" data attribute,
+	// and the user has entered a decimal number between 0 and 1,
+	// multiply the value by 100.
+	if ((input.data('percent')) && (Math.abs(val) <= 1)) {
+		val *= 100;
+	};
+
+	// If the entered value is outside the acceptable
+	// range, throw an error.
+	if (val < min) {
+		throw labelText + ' darf nicht kleiner als ' + min + ' sein.';
+	} else if (val > max) {
+		throw labelText + ' darf nicht größer als ' + max + ' sein.';
+	};
+	return val;
+}
+
+// Helper function that parses a form's input fields and creates a hash from
+// them, which it will then return.
+// Cf.  http://andrewdupont.net/2006/05/18/javascript-associative-arrays-considered-harmful
+// for more on hashes aka 'associative arrays' in JavaScript.
+NephroWiki.parseForm = function(formID) {
+	var params = new Object();
+	$('#'+formID).find('input').each(function() {
+		var fieldName = $(this).attr('name');
+		params[fieldName] = NephroWiki.parseInputValue(formID, fieldName);
+	});
+	// TODO: parse other fields as well (e.g., radio buttons).
+	return params;
+}
+
+
+// The calculate method is a wrapper for the various functions that perform
+// the actual calculations. It takes care of form evaluation and error
+// handling, allowing us to keep the actual calculator functions DRY.
+NephroWiki.calculate = function(formID) {
+	var form = $('#'+formID);
+	try {
+		// Parse the form and generate a hash.
+		var params = this.parseForm(formID);
+		// Call the calculation function by the name of the form ID.
+		// See: http://stackoverflow.com/questions/912596
+		var result = window[formID](params);
+		// Output the result.
+		form.find('.result').html(result);
+	} catch (e) {
+		form.find('.result').html('<div class="error">' + e + '</div>');
+	} finally {
+		result = undefined;
+		params = undefined;
+	}
+}
+
+
+
+/* ***********************************************************************
+   Initialization method to set up a page's calculator forms.
+   ***********************************************************************
+*/
 $(document).ready(function() { 
 
 	// We need several wrapper functions the create closures for
@@ -158,92 +249,5 @@ $(document).ready(function() {
 		NephroWiki.calculate(formID);
 	});
 });
-
-
-/* ***********************************************************************
-   Helper functions for calculator algorithms
-   ***********************************************************************
-*/
-
-// Define a class to obtain a private name space.
-function NephroWiki() {}
-
-// Retrieve the name of the currently checked radio button of a given
-// group. Returns nothing if no button is checked.
-NephroWiki.getRadioValue = function(groupName) {
-	return $('input[name='+groupName+']:checked').val();
-}
-
-// Parse an input field and return its value
-// Automatically converts ',' to decimal points and
-// respects the field's min/max values.
-NephroWiki.parseInputValue = function(formID, fieldName) {
-	// Get the current input field as a jQuery object
-	var input = $('#'+formID+' [name='+fieldName+']');
-
-	// Locate the associated label
-	var label = input.prevUntil('input', 'span:first');
-	var labelText = label.text().replace(/[:=]$/, '');
-
-	// Get the min/max parameters and the value
-	var min = input.data('min');
-	var max = input.data('max');
-	var val = parseFloat(input.val().replace(',', '.'));
-	if (!val) {
-		throw 'Bitte ' + labelText + ' eingeben.';
-	}
-
-	// If the field has a boolean "percent" data attribute,
-	// and the user has entered a decimal number between 0 and 1,
-	// multiply the value by 100.
-	if ((input.data('percent')) && (Math.abs(val) <= 1)) {
-		val *= 100;
-	};
-
-	// If the entered value is outside the acceptable
-	// range, throw an error.
-	if (val < min) {
-		throw labelText + ' darf nicht kleiner als ' + min + ' sein.';
-	} else if (val > max) {
-		throw labelText + ' darf nicht größer als ' + max + ' sein.';
-	};
-	return val;
-}
-
-// Helper function that parses a form's input fields and creates a hash from
-// them, which it will then return.
-// Cf.  http://andrewdupont.net/2006/05/18/javascript-associative-arrays-considered-harmful
-// for more on hashes aka 'associative arrays' in JavaScript.
-NephroWiki.parseForm = function(formID) {
-	var params = new Object();
-	$('#'+formID).find('input').each(function() {
-		var fieldName = $(this).attr('name');
-		params[fieldName] = NephroWiki.parseInputValue(formID, fieldName);
-	});
-	// TODO: parse other fields as well (e.g., radio buttons).
-	return params;
-}
-
-
-// The calculate method is a wrapper for the various functions that perform
-// the actual calculations. It takes care of form evaluation and error
-// handling, allowing us to keep the actual calculator functions DRY.
-NephroWiki.calculate = function(formID) {
-	var form = $('#'+formID);
-	try {
-		// Parse the form and generate a hash.
-		var params = this.parseForm(formID);
-		// Call the calculation function by the name of the form ID.
-		// See: http://stackoverflow.com/questions/912596
-		var result = window[formID](params);
-		// Output the result.
-		form.find('.result').html(result);
-	} catch (e) {
-		form.find('.result').html('<div class="error">' + e + '</div>');
-	} finally {
-		result = undefined;
-		params = undefined;
-	}
-}
 
 /* vim: set tw=76 fo=tqn: */
