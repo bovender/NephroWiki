@@ -38,11 +38,3 @@ $wgResourceModules['ext.nephrowiki'] = array(
 	'localBasePath' => __DIR__,
 	'remoteExtPath' => 'NephroWiki'
 );
-
-# Modules for the individual calculators
-$wgResourceModules['ext.nephrowiki'] = array(
-	'scripts' => 'NephroWiki.Plasma.js',
-	'dependencies' => 'ext.nephrowiki',
-	'localBasePath' => __DIR__,
-	'remoteExtPath' => 'NephroWiki'
-);
