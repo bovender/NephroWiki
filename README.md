@@ -19,7 +19,9 @@ The extension consists of the following files:
   ensures the resource module is loaded with every page.
 * `NephroWiki.body.php` -- defines the `NephroWiki` class and its
   `loadModule` method which is hooked onto the MediaWiki parser.
-* `NephroWiki.js` -- contains custom JavaScript.
+* `NephroWiki.js` -- contains custom JavaScript. You won't need the code in
+  this file; in my Wiki, it serves to facilitate programming of online
+  calculators.
 
 If you want to use this extension on your own wiki, you may want to clone
 the repository:
@@ -45,7 +47,7 @@ Enabling the extension for your wiki
 Add the following line to your `LocalSettings.php`:
 
 ```php
-require_once('extensions/NephroWiki/NephroWiki.php');
+require_once("$IP/extensions/NephroWiki/NephroWiki.php");
 ```
 
 Replace `NephroWiki` with your chosen extension name.
