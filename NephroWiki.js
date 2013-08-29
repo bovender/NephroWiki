@@ -233,6 +233,11 @@ $(document).ready(function() {
 			}
 		});
 
+		$(this).find('input[type=text][data-date]').each(function() {
+			$(this).datepicker();
+			$(this).css('text-align', 'left');
+		});
+
 		// Iterate through all radio buttons on this form.
 		$(this).find('input[type=radio]').each(function() {
 			$(this).click(clickCallBack(formID));

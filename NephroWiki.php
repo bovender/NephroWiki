@@ -23,7 +23,7 @@ $wgExtensionCredits['parserhook'][] = array(
 	'path'           => __FILE__,
 	'name'           => '[http://github.com/bovender/NephroWiki NephroWiki Extension]',
 	'author'         => '[https://www.mediawiki.org/wiki/User:Bovender Daniel Kraus]', 
-	'version'        => '1.0.1',
+	'version'        => '1.1.0',
 	'description'    => 'Lädt NephroWiki-eigenes JavaScript'
 );
 
@@ -34,7 +34,10 @@ $wgHooks['OutputPageParserOutput'][] = 'NephroWiki::loadModule';
 # to be able load NephroWiki's JavaScript.
 $wgResourceModules['ext.nephrowiki'] = array(
 	'scripts' => 'NephroWiki.js',
-	'dependencies' => 'jquery.ui.slider',
+	'dependencies' => array(
+		'jquery.ui.slider',
+		'jquery.ui.datepicker',
+	),
 	'localBasePath' => __DIR__,
 	'remoteExtPath' => 'NephroWiki'
 );
