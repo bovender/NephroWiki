@@ -48,9 +48,34 @@ NephroWiki.parseInputValue = function(formID, fieldName) {
 	// Get the min/max parameters and the value
 	var min = input.data('min');
 	var max = input.data('max');
-	var val = parseFloat(input.val().replace(',', '.'));
-	if (!val) {
-		throw 'Bitte ' + labelText + ' eingeben.';
+
+	if ( input.data('date') == undefined ) {
+		var val = parseFloat(input.val().replace(',', '.'));
+		if (!val) {
+			throw 'Bitte ' + labelText + ' eingeben.';
+		}
+	} else {
+		// The value of a date field is generated differently.
+		var val = input.val();
+		// Check if the input text matches the common German date format
+		// (with optional leading zeros and 2-digit or 4-digit year).
+		var date = /(\d{1,2})\.(\d{1,2})\.(\d{4}|\d{2})/.exec(val);
+		if ( date ) {
+			// Deal with two-digit years: If it is < 80, assume it is in the
+			// current (21st) century. This will cause a Y3K problem
+			// sometime, but I will let others fix it then...
+			if ( date[3] < 100 ) {
+				var century;
+				( date[3] < 80 ) ? century = '20' : century = '19';
+				date[3] = century + date[3];
+			}
+			// The Date constructor expects the month to be between 0 and
+			// 11, so we must subtract 1 from the actual month number.
+			val = new Date(date[3], date[2]-1, date[1]);
+		} else {
+			throw 'Bitte ' + labelText + ' in der Form "T.M.JJ" ' +
+				'oder "TT.MM.JJJJ" eingeben.';
+		}
 	}
 
 	// If the field has a boolean "percent" data attribute,
@@ -234,7 +259,11 @@ $(document).ready(function() {
 		});
 
 		$(this).find('input[type=text][data-date]').each(function() {
-			$(this).datepicker();
+			$(this).datepicker({
+				shortYearCutoff: "+1",
+				showOn: "button",
+				onSelect: clickCallBack(formID)
+			});
 			$(this).css('text-align', 'left');
 		});
 
