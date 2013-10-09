@@ -23,7 +23,7 @@ $wgExtensionCredits['parserhook'][] = array(
 	'path'           => __FILE__,
 	'name'           => '[http://github.com/bovender/NephroWiki NephroWiki Extension]',
 	'author'         => '[https://www.mediawiki.org/wiki/User:Bovender Daniel Kraus]', 
-	'version'        => '1.1.0',
+	'version'        => '1.1.1',
 	'description'    => 'Lädt NephroWiki-eigenes JavaScript'
 );
 

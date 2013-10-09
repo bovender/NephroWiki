@@ -268,7 +268,7 @@ $(document).ready(function() {
 		});
 
 		// Iterate through all radio buttons on this form.
-		$(this).find('input[type=radio]').each(function() {
+		$(this).find('input[type=radio], input[type=checkbox]').each(function() {
 			$(this).click(clickCallBack(formID));
 		});
 
