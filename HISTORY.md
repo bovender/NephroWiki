@@ -1,6 +1,10 @@
 Version History of NephroWiki Extension
 =======================================
 
+1.1.2
+-----
+Fix URL in metadata.
+
 1.1.1
 -----
 Add ability to parse checkboxes in calculator script.
