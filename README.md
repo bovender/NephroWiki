@@ -59,7 +59,7 @@ License
 This extension is licensed under the [GNU General Public License V.2][gpl].
 
 	NephroWiki extension
-	Copyright (C) 2013 Daniel Kraus (github.com/bovender)
+	Copyright (C) 2013-2023 Daniel Kraus (github.com/bovender)
 
 	This program is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License

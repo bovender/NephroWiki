@@ -1,6 +1,11 @@
 Version History of NephroWiki Extension
 =======================================
 
+UNRELEASED
+----------
+
+- Fix fatal error due to non-static loadModule function.
+
 1.1.2
 -----
 Fix URL in metadata.
